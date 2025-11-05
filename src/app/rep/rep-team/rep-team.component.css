@@ -1,0 +1,9 @@
+.container { max-width: 900px; margin: 0 auto; }
+.row { display: flex; gap: 12px; margin: 8px 0; align-items: center; }
+.row input { flex: 1; padding: 6px 8px; }
+.toolbar { display: flex; gap: 10px; align-items: center; margin: 10px 0; }
+.muted { color: #666; }
+.players { width: 100%; border-collapse: collapse; }
+.players th, .players td { border-bottom: 1px solid #eee; padding: 8px; text-align: left; }
+.actions { margin-top: 16px; }
+button.primary { background: #111827; color: #fff; padding: 8px 14px; border-radius: 6px; }

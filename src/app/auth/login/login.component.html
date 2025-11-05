@@ -1,0 +1,43 @@
+<div class="max-w-xl mx-auto py-16 px-4">
+
+  <h1 class="text-2xl font-semibold mb-8">Admin / Rep Access</h1>
+
+  <!-- If already logged in, show area buttons -->
+  <div *ngIf="role as r" class="bg-white border rounded-xl p-6 mb-8">
+    <p class="mb-4">You are currently logged in as: <strong>{{ r }}</strong></p>
+
+    <div class="flex gap-4">
+      <button (click)="goToArea()" class="px-4 py-2 rounded-lg bg-black text-white">
+        Go to {{ r === 'ADMIN' ? 'Admin Dashboard' : 'Rep Area' }}
+      </button>
+
+      <button (click)="logout()" class="px-4 py-2 rounded-lg border">
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- If not logged in, show role selection -->
+  <div *ngIf="!role" class="grid md:grid-cols-2 gap-6">
+    <div class="bg-white border rounded-xl p-6">
+      <h2 class="text-lg font-medium mb-2">Admin Login</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Access match management & dashboard.
+      </p>
+      <button (click)="enterAdmin()" class="px-4 py-2 rounded-lg bg-black text-white">
+        Enter Admin
+      </button>
+    </div>
+
+    <div class="bg-white border rounded-xl p-6">
+      <h2 class="text-lg font-medium mb-2">Rep Login</h2>
+      <p class="text-sm text-gray-600 mb-4">
+        Manage your team & report match details.
+      </p>
+      <button (click)="enterRep()" class="px-4 py-2 rounded-lg bg-amber-500 text-white">
+        Enter Rep
+      </button>
+    </div>
+  </div>
+
+</div>

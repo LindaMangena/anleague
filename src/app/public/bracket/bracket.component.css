@@ -1,0 +1,6 @@
+.container { max-width: 1100px; margin: 0 auto; }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.col { background: #f8fafc; padding: 10px; border-radius: 8px; }
+.card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+.line { display: flex; justify-content: space-between; padding: 4px 0; }
+.link { font-size: 12px; color: #1d4ed8; }

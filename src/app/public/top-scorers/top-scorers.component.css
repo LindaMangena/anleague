@@ -1,0 +1,3 @@
+.container { max-width: 900px; margin: 0 auto; }
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th, .tbl td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }

@@ -1,0 +1,47 @@
+<div class="container">
+  <h2>Register Team (Rep)</h2>
+
+  <div class="row">
+    <label>Country</label>
+    <input [(ngModel)]="country" placeholder="e.g. France" />
+  </div>
+
+  <div class="row">
+    <label>Manager</label>
+    <input [(ngModel)]="manager" placeholder="e.g. Didier Deschamps" />
+  </div>
+
+  <div class="toolbar">
+    <button (click)="autoFill23()">Auto-generate 23-man squad</button>
+    <button (click)="addEmptyPlayer()">Add Player</button>
+    <span class="muted">Registered teams: {{ teamCount }}</span>
+  </div>
+
+  <table class="players">
+    <thead>
+      <tr>
+        <th>#</th><th>Name</th><th>Natural Pos</th><th>Captain</th><th>Nat Rating</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of players; index as i">
+        <td>{{ i + 1 }}</td>
+        <td><input [(ngModel)]="p.name" /></td>
+        <td>
+          <select [(ngModel)]="p.natural">
+            <option *ngFor="let pos of posOptions" [value]="pos">{{ pos }}</option>
+          </select>
+        </td>
+        <td>
+          <input type="radio" name="captain" [checked]="p.captain" (change)="setCaptain(p.id)" />
+        </td>
+        <td>{{ p.ratings[p.natural] }}</td>
+        <td><button (click)="remove(i)">Remove</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="actions">
+    <button class="primary" (click)="saveTeam()">Save Team</button>
+  </div>
+</div>

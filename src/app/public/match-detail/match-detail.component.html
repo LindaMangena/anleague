@@ -1,0 +1,31 @@
+<div class="container" *ngIf="match as m">
+  <h2>{{ teamName(m.homeId) }} vs {{ teamName(m.awayId) }}</h2>
+
+  <div class="meta">
+    <span class="badge" [class.played]="m.status==='played'" [class.sim]="m.status==='simulated'">
+      {{ m.status | titlecase }}
+    </span>
+  </div>
+
+  <div *ngIf="m.status!=='pending'" class="score">
+    <strong>{{ teamName(m.homeId) }}</strong>
+    <span>{{ m.homeScore }} – {{ m.awayScore }}</span>
+    <strong>{{ teamName(m.awayId) }}</strong>
+  </div>
+
+  <div *ngIf="m.goals.length" class="goals">
+    <h3>Goals</h3>
+    <ul>
+      <li *ngFor="let g of m.goals">
+        {{ g.minute }}' — {{ g.playerName }} ({{ teamName(g.teamId) }})
+      </li>
+    </ul>
+  </div>
+
+  <div *ngIf="m.status==='played' && m.commentary?.length" class="comm">
+    <h3>Commentary</h3>
+    <ul>
+      <li *ngFor="let e of m.commentary">{{ e.minute }}' — {{ e.text }}</li>
+    </ul>
+  </div>
+</div>

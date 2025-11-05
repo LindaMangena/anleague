@@ -1,0 +1,39 @@
+<div class="container">
+  <h2>Admin Console</h2>
+
+  <div class="bar">
+    <div>Registered teams: <strong>{{ teams.length }}</strong></div>
+    <button [disabled]="teams.length < 8" (click)="start()">Start (needs 8 teams)</button>
+    <button class="danger" (click)="reset()">Reset</button>
+  </div>
+
+  <div *ngFor="let r of rounds" class="round">
+    <h3>{{ r === 'QF' ? 'Quarter-finals' : r === 'SF' ? 'Semi-finals' : 'Final' }}</h3>
+    <div class="grid">
+      <div class="match" *ngFor="let m of store.getRound(r)">
+        <div class="teams">
+          <div>{{ teamName(m.homeId) }}</div>
+          <div class="vs">vs</div>
+          <div>{{ teamName(m.awayId) }}</div>
+        </div>
+
+        <div class="status">
+          <ng-container [ngSwitch]="m.status">
+            <span *ngSwitchCase="'pending'" class="badge">Pending</span>
+            <span *ngSwitchCase="'played'" class="badge played">Played</span>
+            <span *ngSwitchCase="'simulated'" class="badge simulated">Simulated</span>
+          </ng-container>
+        </div>
+
+        <div class="ops" *ngIf="m.status === 'pending'">
+          <button (click)="play(m.id)">Play (commentary)</button>
+          <button (click)="simulate(m.id)">Simulate</button>
+        </div>
+
+        <div *ngIf="m.status !== 'pending'" class="score">
+          <a [routerLink]="['/match', m.id]">{{ teamName(m.homeId) }} {{ m.homeScore }} – {{ m.awayScore }} {{ teamName(m.awayId) }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

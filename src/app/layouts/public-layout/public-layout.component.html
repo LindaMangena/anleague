@@ -1,0 +1,32 @@
+<!-- Top nav -->
+<nav class="w-full border-b bg-white">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+    <a routerLink="/" class="font-semibold">🏆 Euro-Style Cup</a>
+    <div class="flex items-center gap-3">
+      <a routerLink="/bracket" class="text-sm">Bracket</a>
+      <a routerLink="/top-scorers" class="text-sm">Top Scorers</a>
+
+      <!-- If no role yet, show Admin/Rep entry -->
+      <a *ngIf="!role" routerLink="/login"
+         class="px-3 py-1 rounded-full bg-amber-500 text-white text-sm">Admin / Rep</a>
+
+      <!-- If role exists, show shortcuts + logout -->
+      <ng-container *ngIf="role">
+        <a *ngIf="role === 'ADMIN'" routerLink="/admin" class="px-3 py-1 rounded-full border text-sm">Admin</a>
+        <a *ngIf="role === 'REP'" routerLink="/rep" class="px-3 py-1 rounded-full border text-sm">Rep</a>
+        <button (click)="logout()" class="px-3 py-1 rounded-full border text-sm">Logout</button>
+      </ng-container>
+    </div>
+  </div>
+</nav>
+
+<!-- IMPORTANT: children render here -->
+<main class="min-h-[calc(100vh-6rem)] bg-gray-50">
+  <router-outlet></router-outlet>
+</main>
+
+<footer class="border-t bg-white">
+  <div class="max-w-6xl mx-auto px-4 h-12 flex items-center text-xs text-gray-500">
+    © {{ currentYear }} Knockout Demo
+  </div>
+</footer>

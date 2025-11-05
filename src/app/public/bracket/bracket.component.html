@@ -1,0 +1,23 @@
+<div class="container">
+  <h2>Bracket</h2>
+
+  <div class="grid">
+    <div *ngFor="let r of rounds" class="col">
+      <h3>{{ r === 'QF' ? 'Quarter-finals' : r === 'SF' ? 'Semi-finals' : 'Final' }}</h3>
+      <div class="card" *ngFor="let m of store.getRound(r)">
+        <div class="line">
+          <span>{{ teamName(m.homeId) }}</span>
+          <span *ngIf="m.status !== 'pending'">{{ m.homeScore }}</span>
+        </div>
+        <div class="line">
+          <span>{{ teamName(m.awayId) }}</span>
+          <span *ngIf="m.status !== 'pending'">{{ m.awayScore }}</span>
+        </div>
+
+        <a class="link" [routerLink]="['/match', m.id]">
+          {{ m.status === 'pending' ? 'View fixture' : 'View match' }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

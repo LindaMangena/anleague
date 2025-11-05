@@ -1,0 +1,16 @@
+<div class="container">
+  <h2>Top Scorers</h2>
+  <table class="tbl">
+    <thead>
+      <tr><th>#</th><th>Player</th><th>Team</th><th>Goals</th></tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let r of store.topScorers(); index as i">
+        <td>{{ i + 1 }}</td>
+        <td>{{ r.playerName }}</td>
+        <td>{{ teamName(r.teamId) }}</td>
+        <td>{{ r.goals }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
