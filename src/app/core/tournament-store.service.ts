@@ -7,6 +7,8 @@ import {
   RoundCode,
   RoundOrder,
   Team,
+  Player,
+  Position,
 } from './models';
 
 interface State {
@@ -21,7 +23,6 @@ export class TournamentStoreService {
   private state: State = this.load();
 
   constructor() {
-    // Seed once so the app has visible data immediately
     this.seedDemoIfEmpty();
   }
 
@@ -43,6 +44,11 @@ export class TournamentStoreService {
 
   getMatch(id: string): Match | undefined {
     return this.state.matches.find((m) => m.id === id);
+  }
+
+  /** NEW: convenience accessor */
+  getTeam(id: string): Team | undefined {
+    return this.state.teams.find(t => t.id === id);
   }
 
   // ---------- TEAM OPS ----------
@@ -247,12 +253,11 @@ export class TournamentStoreService {
   private goalFor(teamId: string, minute?: number): GoalEvent {
     const team = this.teamById(teamId);
     const pool = [...team.players].sort(() => Math.random() - 0.5);
-    const striker = (pool as any[]).find((p) => p.natural === 'AT') ?? pool[0];
+    const striker = pool.find((p) => p.natural === 'AT') ?? pool[0];
     const min = minute ?? 5 + Math.floor(Math.random() * 86);
-    return { teamId, minute: min, playerName: (striker as any).name };
+    return { teamId, minute: min, playerName: striker.name };
   }
 
-  /** Decide a winner given goals; if tied, bias by team ratings and pick one (pens). */
   private winnerFrom(
     homeId: string,
     awayId: string,
@@ -264,28 +269,22 @@ export class TournamentStoreService {
 
     const home = this.teamById(homeId);
     const away = this.teamById(awayId);
-    const bias = (home.teamRating - away.teamRating) / 200; // small bias around 0
-    const pHome = 0.5 + bias; // chance home wins pens
+    const bias = (home.teamRating - away.teamRating) / 200;
+    const pHome = 0.5 + bias;
     return Math.random() < pHome ? homeId : awayId;
   }
 
   private poisson(lambda: number): number {
     const L = Math.exp(-lambda);
-    let k = 0,
-      p = 1;
-    do {
-      k++;
-      p *= Math.random();
-    } while (p > L);
+    let k = 0, p = 1;
+    do { k++; p *= Math.random(); } while (p > L);
     return k - 1;
   }
 
   private load(): State {
     const raw = localStorage.getItem(KEY);
     if (raw) {
-      try {
-        return JSON.parse(raw) as State;
-      } catch {}
+      try { return JSON.parse(raw) as State; } catch {}
     }
     return { teams: [], matches: [] };
   }
@@ -295,45 +294,189 @@ export class TournamentStoreService {
   }
 
   // ---------- DEMO SEED ----------
-  /** Seed teams + a fully filled bracket (QF→SF→F) so the UI has content. */
+  /**
+   * Seeds:
+   * - 8 teams
+   * - Each team: manager + 23-player squad (3 GK, 8 DF, 8 MD, 4 AT)
+   * - One captain per team
+   * - Bracket filled with QF→SF→F (as you already had)
+   */
   private seedDemoIfEmpty(): void {
     if (this.state.teams.length || this.state.matches.length) return;
 
-    // your Player model requires id + ratings; add them
-    const P = (name: string, nat: any = 'AT') =>
-      ({
-        id: crypto.randomUUID(),
-        name,
-        natural: nat as any,
-        ratings: {} as any,
-      } as any);
+    const mkRatings = (nat: Position, base = 84): Record<Position, number> => {
+      const r: Record<Position, number> = { GK: 40, DF: 40, MD: 40, AT: 40 };
+      r[nat] = base;
+      return r;
+    };
 
-    // Team also needs manager + createdAt -> include them
-    const makeTeam = (id: string, country: string, rating: number, players: any[]): Team =>
-      ({
+    const P = (name: string, nat: Position, base = 84, captain = false): Player => ({
+      id: crypto.randomUUID(),
+      name,
+      natural: nat,
+      ratings: mkRatings(nat, base),
+      captain,
+    });
+
+    const mk23 = (
+      gk: string[], df: string[], md: string[], at: string[], captainName: string
+    ): Player[] => {
+      const players: Player[] = [];
+      // 3 GK
+      players.push(P(gk[0], 'GK', 83), P(gk[1], 'GK', 80), P(gk[2], 'GK', 78));
+      // 8 DF
+      df.forEach((n, i) => players.push(P(n, 'DF', 82 + (i % 3))));
+      // 8 MD
+      md.forEach((n, i) => players.push(P(n, 'MD', 83 + (i % 3))));
+      // 4 AT
+      at.forEach((n, i) => players.push(P(n, 'AT', 85 + (i % 3), n === captainName)));
+      // Ensure someone is captain if captainName was not in AT list
+      if (!players.some(p => p.captain)) {
+        const idx = players.findIndex(p => p.name === captainName);
+        if (idx >= 0) players[idx].captain = true;
+        else players[players.length - 1].captain = true;
+      }
+      return players;
+    };
+
+    const makeTeam = (
+      id: string,
+      country: string,
+      manager: string,
+      squad: Player[]
+    ): Team => {
+      const teamRating =
+        Math.round(
+          squad.reduce((sum, p) => sum + p.ratings[p.natural], 0) / squad.length
+        );
+      return {
         id,
         country,
-        teamRating: rating,
-        players,
-        manager: `${country} Manager`,
+        manager,
+        players: squad,
+        teamRating,
         createdAt: new Date().toISOString(),
-      } as unknown as Team);
+      };
+    };
 
-    const teams: Team[] = [
-      makeTeam('FRA', 'France',      88, [P('Mbappé','AT'), P('Griezmann','AM'), P('Hernández','DF')]),
-      makeTeam('BEL', 'Belgium',     84, [P('Lukaku','AT'), P('De Bruyne','AM'), P('Vertonghen','DF')]),
-      makeTeam('ENG', 'England',     87, [P('Kane','AT'), P('Foden','AM'), P('Walker','DF')]),
-      makeTeam('ITA', 'Italy',       83, [P('Immobile','AT'), P('Barella','CM'), P('Bastoni','DF')]),
-      makeTeam('ESP', 'Spain',       86, [P('Morata','AT'), P('Pedri','AM'), P('Carvajal','DF')]),
-      makeTeam('POR', 'Portugal',    86, [P('Ronaldo','AT'), P('Bruno','AM'), P('Dias','DF')]),
-      makeTeam('NED', 'Netherlands', 84, [P('Depay','AT'), P('Gakpo','AM'), P('Van Dijk','DF')]),
-      makeTeam('GER', 'Germany',     85, [P('Havertz','AT'), P('Musiala','AM'), P('Rüdiger','DF')]),
-    ];
+    // --- France ---
+    const FRA = makeTeam(
+      'FRA',
+      'France',
+      'Didier Deschamps',
+      mk23(
+        ['Maignan', 'Areola', 'Lafont'],
+        ['Theo Hernández', 'Koundé', 'Upamecano', 'Saliba', 'Konaté', 'Lucas Hernández', 'Pavard', 'Clauss'],
+        ['Rabiot', 'Tchouaméni', 'Camavinga', 'Kanté', 'Fekir', 'Thuram', 'Kolo Muani', 'Lemar'],
+        ['Mbappé', 'Griezmann', 'Dembele', 'Giroud'],
+        'Mbappé'
+      )
+    );
 
+    // --- England ---
+    const ENG = makeTeam(
+      'ENG',
+      'England',
+      'Gareth Southgate',
+      mk23(
+        ['Pickford', 'Ramsdale', 'Johnstone'],
+        ['Walker', 'Trippier', 'Maguire', 'Stones', 'Guehi', 'Shaw', 'Alexander-Arnold', 'Colwill'],
+        ['Rice', 'Bellingham', 'Grealish', 'Foden', 'Mount', 'Maddison', 'Gallagher', 'Henderson'],
+        ['Kane', 'Saka', 'Rashford', 'Watkins'],
+        'Kane'
+      )
+    );
+
+    // --- Spain ---
+    const ESP = makeTeam(
+      'ESP',
+      'Spain',
+      'Luis de la Fuente',
+      mk23(
+        ['Unai Simón', 'Raya', 'Remiro'],
+        ['Carvajal', 'Laporte', 'Pau Torres', 'Le Normand', 'Azpilicueta', 'Gaya', 'Balde', 'Nacho'],
+        ['Rodri', 'Pedri', 'Gavi', 'Merino', 'Thiago', 'Koke', 'Fabian Ruiz', 'Olmo'],
+        ['Morata', 'Ferran Torres', 'Oyarzabal', 'Ansu Fati'],
+        'Morata'
+      )
+    );
+
+    // --- Portugal ---
+    const POR = makeTeam(
+      'POR',
+      'Portugal',
+      'Roberto Martínez',
+      mk23(
+        ['Diogo Costa', 'Rui Patrício', 'José Sá'],
+        ['Cancelo', 'Ruben Dias', 'Pepe', 'Guerreiro', 'Mendes', 'Inácio', 'Dalot', 'Carvalho'],
+        ['Bruno Fernandes', 'Bernardo Silva', 'Vitinha', 'Neves', 'Palhinha', 'Nunes', 'João Mario', 'Eustaquio'],
+        ['Ronaldo', 'Diogo Jota', 'João Félix', 'Ramos'],
+        'Ronaldo'
+      )
+    );
+
+    // --- Belgium ---
+    const BEL = makeTeam(
+      'BEL',
+      'Belgium',
+      'Domenico Tedesco',
+      mk23(
+        ['Courtois', 'Casteels', 'Mignolet'],
+        ['Vertonghen', 'Alderweireld', 'Faes', 'Castagne', 'Theate', 'Meunier', 'Dendoncker', 'Debast'],
+        ['De Bruyne', 'Tielemans', 'Onana', 'Carrasco', 'Trossard', 'Witsel', 'Doku', 'Openda'],
+        ['Lukaku', 'Batshuayi', 'Origi', 'Trossard'],
+        'De Bruyne'
+      )
+    );
+
+    // --- Italy ---
+    const ITA = makeTeam(
+      'ITA',
+      'Italy',
+      'Luciano Spalletti',
+      mk23(
+        ['Donnarumma', 'Meret', 'Vicario'],
+        ['Bastoni', 'Acerbi', 'Di Lorenzo', 'Spinazzola', 'Toloi', 'Darmian', 'Scalvini', 'Dimarco'],
+        ['Barella', 'Jorginho', 'Locatelli', 'Frattesi', 'Pellegrini', 'Veratti', 'Zaniolo', 'Raspadori'],
+        ['Immobile', 'Chiesa', 'Politano', 'Kean'],
+        'Barella'
+      )
+    );
+
+    // --- Netherlands ---
+    const NED = makeTeam(
+      'NED',
+      'Netherlands',
+      'Ronald Koeman',
+      mk23(
+        ['Cillessen', 'Bijlow', 'Flekken'],
+        ['Van Dijk', 'Ake', 'De Vrij', 'Timber', 'Blind', 'Dumfries', 'Botman', 'Malacia'],
+        ['Frenkie de Jong', 'Wijnaldum', 'Koopmeiners', 'Gravenberch', 'Simons', 'Veerman', 'Berghuis', 'Wieffer'],
+        ['Depay', 'Gakpo', 'Malen', 'Weghorst'],
+        'Van Dijk'
+      )
+    );
+
+    // --- Germany ---
+    const GER = makeTeam(
+      'GER',
+      'Germany',
+      'Julian Nagelsmann',
+      mk23(
+        ['Neuer', 'Ter Stegen', 'Trapp'],
+        ['Rüdiger', 'Süle', 'Tah', 'Henrichs', 'Gosens', 'Schlotterbeck', 'Raum', 'Hummels'],
+        ['Kimmich', 'Gündoğan', 'Musiala', 'Havertz', 'Brandt', 'Can', 'Goretzka', 'Wirtz'],
+        ['Werner', 'Sané', 'Müller', 'Adeyemi'],
+        'Kimmich'
+      )
+    );
+
+    const teams: Team[] = [FRA, BEL, ENG, ITA, ESP, POR, NED, GER];
+
+    // --- Pre-filled bracket (same as before) ---
     const goals = (teamId: string, minutes: number[], scorer: string): GoalEvent[] =>
       minutes.map((minute) => ({ teamId, minute, playerName: scorer }));
 
-    // Pre-filled matches (QF → SF → Final)
     const qf1: Match = {
       id: crypto.randomUUID(),
       round: 'QF',
@@ -427,7 +570,6 @@ export class TournamentStoreService {
       winnerId: 'FRA',
     };
 
-    // wire nextMatchId (for completeness)
     qf1.nextMatchId = sf1.id;
     qf2.nextMatchId = sf1.id;
     qf3.nextMatchId = sf2.id;

@@ -1,0 +1,25 @@
+<div class="max-w-5xl mx-auto p-6">
+  <h1 class="text-2xl font-semibold mb-6">Registered Teams</h1>
+
+  <div *ngIf="teams.length === 0" class="text-gray-500 text-center py-8">
+    No teams registered yet.
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-5">
+    <div *ngFor="let t of teams" class="bg-white border rounded-lg p-4 shadow-sm">
+      <div class="text-xl font-semibold">{{ t.country }}</div>
+      <div class="text-sm text-gray-500 mb-3">Manager: {{ t.manager }}</div>
+
+      <div class="text-sm text-gray-600 mb-3">
+        Squad Size: {{ t.players.length }} / 23
+      </div>
+
+      <a
+        class="text-blue-600 hover:underline text-sm"
+        [routerLink]="['/teams', t.id]"
+      >
+        View Squad →
+      </a>
+    </div>
+  </div>
+</div>

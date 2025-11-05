@@ -19,8 +19,13 @@ import { AdminMatchesComponent } from './admin/admin-matches/admin-matches.compo
 
 import { RoleGuard } from './core/role.guard';
 
+// ✅ NEW (TEAM LIST + TEAM DETAILS)
+import { TeamsComponent } from './pages/teams/teams.component';
+import { TeamDetailComponent } from './pages/team-detail/team-detail.component';
+// import { TeamDetailComponent } from './pages/teams/team-detail/team-detail.component';
+
 const routes: Routes = [
-  // PUBLIC PAGES + AUTH
+  // PUBLIC PAGES
   {
     path: '',
     component: PublicLayoutComponent,
@@ -31,6 +36,10 @@ const routes: Routes = [
       { path: 'top-scorers', component: TopScorersComponent },
       { path: 'login', component: LoginComponent },
       { path: 'register-rep', component: RegisterRepComponent },
+
+      // ✅ TEAM LIST + TEAM VIEW
+      { path: 'teams', component: TeamsComponent },
+      { path: 'teams/:id', component: TeamDetailComponent },
     ]
   },
 
@@ -38,7 +47,7 @@ const routes: Routes = [
   {
     path: 'rep',
     component: RepLayoutComponent,
-    canActivate: [RoleGuard], data: { role: 'rep' }, // ✅ lowercase role (matches localStorage)
+    canActivate: [RoleGuard], data: { role: 'rep' },
     children: [
       { path: '', redirectTo: 'team', pathMatch: 'full' },
       { path: 'team', component: RepTeamComponent },
@@ -49,7 +58,7 @@ const routes: Routes = [
   {
     path: 'admin',
     component: AdminLayoutComponent,
-    canActivate: [RoleGuard], data: { role: 'admin' }, // ✅ lowercase role
+    canActivate: [RoleGuard], data: { role: 'admin' },
     children: [
       { path: '', component: AdminDashboardComponent },
       { path: 'matches', component: AdminMatchesComponent },

@@ -18,6 +18,8 @@ import { AdminMatchesComponent } from './admin/admin-matches/admin-matches.compo
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { TeamsComponent } from './pages/teams/teams.component';
+import { TeamDetailComponent } from './pages/team-detail/team-detail.component';
 // ... add to imports
 
 
@@ -36,7 +38,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     RegisterRepComponent,
     RepTeamComponent,
     AdminDashboardComponent,
-    AdminMatchesComponent
+    AdminMatchesComponent,
+    TeamsComponent,
+    TeamDetailComponent
   ],
   imports: [
     BrowserModule,

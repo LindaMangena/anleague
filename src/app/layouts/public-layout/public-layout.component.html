@@ -6,6 +6,9 @@
       <a routerLink="/bracket" class="text-sm">Bracket</a>
       <a routerLink="/top-scorers" class="text-sm">Top Scorers</a>
 
+      <!-- 👇 NEW: Teams (manager + 23-man squads) -->
+      <a routerLink="/teams" class="text-sm">Teams</a>
+
       <!-- If no role yet, show Admin/Rep entry -->
       <a *ngIf="!role" routerLink="/login"
          class="px-3 py-1 rounded-full bg-amber-500 text-white text-sm">Admin / Rep</a>

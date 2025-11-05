@@ -1,0 +1,45 @@
+<div class="max-w-5xl mx-auto p-6" *ngIf="team as t; else notFound">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-semibold">{{ t.country }} — Squad</h1>
+    <a routerLink="/teams" class="text-sm hover:text-amber-600">← Back to Teams</a>
+  </div>
+
+  <div class="bg-white border rounded-lg p-5 shadow-sm mb-6">
+    <div class="text-sm text-gray-500">Manager</div>
+    <div class="text-lg font-medium">{{ t.manager }}</div>
+    <div class="text-sm text-gray-500 mt-1">Squad Size: {{ t.players.length }} / 23</div>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6">
+    <div *ngFor="let pos of posOrder" class="bg-white border rounded-lg p-4 shadow-sm">
+      <h2 class="font-semibold mb-3">
+        {{ pos === 'GK' ? 'Goalkeepers' : pos === 'DF' ? 'Defenders' : pos === 'MD' ? 'Midfielders' : 'Attackers' }}
+        ({{ pos }})
+      </h2>
+
+      <table class="w-full text-sm">
+        <tbody>
+          <tr *ngFor="let p of grouped(pos)" class="border-b last:border-0">
+            <td class="py-2">
+              {{ p.name }}
+              <span *ngIf="p.captain"
+                    class="ml-2 inline-block text-[10px] uppercase bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                Captain
+              </span>
+            </td>
+            <td class="text-right text-gray-500">Rating: {{ p.ratings[p.natural] }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<ng-template #notFound>
+  <div class="max-w-5xl mx-auto p-6">
+    <p class="text-gray-600">
+      Team not found.
+      <a routerLink="/teams" class="text-amber-600">Back to Teams</a>
+    </p>
+  </div>
+</ng-template>
